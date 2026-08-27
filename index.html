@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827"><link rel="manifest" href="manifest.json">
+<title>Assistente Financeiro</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f3f4f6;color:#111827}
+header{background:#111827;color:white;padding:18px 16px calc(18px + env(safe-area-inset-top));position:sticky;top:0;z-index:3}
+h1{font-size:21px;margin:0 0 4px}small{opacity:.8}.wrap{max-width:760px;margin:auto;padding:14px 14px 90px}
+.card{background:white;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 2px 10px #0000000d}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:520px){.grid{grid-template-columns:1fr}}
+label{font-size:13px;font-weight:600;display:block;margin:8px 0 5px}input,textarea{width:100%;padding:12px;border:1px solid #d1d5db;border-radius:10px;font-size:16px;background:#fff}
+button{border:0;border-radius:11px;padding:12px 15px;font-size:15px;font-weight:700;cursor:pointer}.primary{background:#111827;color:#fff}.secondary{background:#e5e7eb;color:#111827}.danger{background:#fee2e2;color:#991b1b}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.tabs{display:flex;gap:8px;overflow:auto;margin-bottom:14px}.tab{white-space:nowrap;background:#e5e7eb}.tab.active{background:#111827;color:white}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.kpi{padding:13px;border-radius:13px;background:#f9fafb}.kpi b{display:block;font-size:20px;margin-top:4px}
+.good{background:#dcfce7;color:#166534}.mid{background:#fef3c7;color:#92400e}.bad{background:#fee2e2;color:#991b1b}
+.trip{border:1px solid #e5e7eb;border-radius:13px;padding:13px;margin-top:10px}.muted{color:#6b7280}.row{display:flex;justify-content:space-between;gap:8px}.pill{display:inline-block;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:800}
+hr{border:0;border-top:1px solid #e5e7eb;margin:15px 0}
+#install{display:none;background:#dbeafe;color:#1e40af}
+</style></head>
+<body>
+<header><h1>🚛 Assistente Financeiro</h1><small>Controle de viagens e rentabilidade</small></header>
+<div class="wrap">
+<div id="install" class="card"><b>📱 Instale no iPhone</b><p>Abra este app pelo Safari e use <b>Compartilhar → Adicionar à Tela de Início</b>.</p></div>
+<div class="tabs">
+<button class="tab active" onclick="show('nova',this)">Nova viagem</button>
+<button class="tab" onclick="show('mes',this)">Relatório mensal</button>
+<button class="tab" onclick="show('historico',this)">Histórico</button>
+</div>
+
+<section id="nova">
+<div class="card"><h2>Registrar viagem</h2>
+<div class="grid">
+<div><label>Data</label><input id="date" type="date"></div>
+<div><label>Frete (R$)</label><input id="freight" type="number" step=".01" inputmode="decimal"></div>
+<div><label>Origem</label><input id="origin" placeholder="Ex.: Cândido Mota"></div>
+<div><label>Destino</label><input id="dest" placeholder="Ex.: Cascavel"></div>
+<div><label>KM inicial</label><input id="km0" type="number" step="1"></div>
+<div><label>KM final</label><input id="km1" type="number" step="1"></div>
+<div><label>Litros abastecidos</label><input id="liters" type="number" step=".01"></div>
+<div><label>Preço diesel (R$/L)</label><input id="diesel" type="number" step=".01" value="5.64"></div>
+<div><label>Pedágios (R$)</label><input id="tolls" type="number" step=".01" value="0"></div>
+<div><label>Outras despesas (R$)</label><input id="other" type="number" step=".01" value="0"></div>
+</div>
+<label>Observações</label><textarea id="notes" rows="2" placeholder="Ex.: 2 dias, carga, desvio..."></textarea>
+<div class="actions"><button class="primary" onclick="saveTrip()">Salvar viagem</button><button class="secondary" onclick="clearForm()">Limpar</button></div>
+</div>
+<div id="preview" class="card" style="display:none"></div>
+</section>
+
+<section id="mes" style="display:none"><div class="card"><h2>Relatório mensal</h2>
+<label>Mês</label><input id="month" type="month" onchange="renderMonth()"><div id="monthReport"></div></div></section>
+
+<section id="historico" style="display:none"><div class="card"><h2>Viagens salvas</h2><div id="history"></div></div></section>
+</div>
+<script>
+const KEY="af_trips_v1";
+const $=id=>document.getElementById(id);
+let trips=JSON.parse(localStorage.getItem(KEY)||"[]");
+$("date").value=new Date().toISOString().slice(0,10);
+$("month").value=new Date().toISOString().slice(0,7);
+
+function money(v){return (Number(v)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}
+function num(id){return Number($(id).value)||0}
+function calc(t){
+ const km=Math.max(0,t.km1-t.km0), diesel=t.liters*t.diesel, comm=t.freight*.13;
+ const total=diesel+comm+t.tolls+t.other, profit=t.freight-total;
+ const avg=t.liters>0?km/t.liters:0, cpk=km?total/km:0, margin=t.freight?profit/t.freight:0;
+ let status=margin>=.25?"BOM":margin>=.12?"ACEITÁVEL":"RUIM";
+ return {km,diesel,comm,total,profit,avg,cpk,margin,status};
+}
+function badge(s){return `<span class="pill ${s==="BOM"?"good":s==="ACEITÁVEL"?"mid":"bad"}">${s}</span>`}
+function saveTrip(){
+ const t={id:Date.now(),date:$("date").value,freight:num("freight"),origin:$("origin").value.trim(),dest:$("dest").value.trim(),km0:num("km0"),km1:num("km1"),liters:num("liters"),diesel:num("diesel"),tolls:num("tolls"),other:num("other"),notes:$("notes").value.trim()};
+ if(!t.freight||!t.origin||!t.dest||t.km1<t.km0){alert("Preencha frete, origem, destino e KM corretamente.");return}
+ trips.unshift(t);localStorage.setItem(KEY,JSON.stringify(trips));showPreview(t);clearForm(false);renderHistory();renderMonth();
+}
+function showPreview(t){
+ const c=calc(t);$("preview").style.display="block";
+ $("preview").innerHTML=`<h2>${t.origin} → ${t.dest} ${badge(c.status)}</h2>
+ <div class="kpis"><div class="kpi">Frete<b>${money(t.freight)}</b></div><div class="kpi">Sobra<b>${money(c.profit)}</b></div>
+ <div class="kpi">KM<b>${c.km.toLocaleString("pt-BR")}</b></div><div class="kpi">Média<b>${c.avg?c.avg.toFixed(2):"—"} km/L</b></div>
+ <div class="kpi">Diesel<b>${money(c.diesel)}</b></div><div class="kpi">Comissão 13%<b>${money(c.comm)}</b></div>
+ <div class="kpi">Pedágios<b>${money(t.tolls)}</b></div><div class="kpi">Custo total<b>${money(c.total)}</b></div></div>
+ <hr><b>Lucro por km:</b> ${c.km?money(c.profit/c.km):"—"} &nbsp; <b>Margem:</b> ${(c.margin*100).toFixed(1)}%`;
+}
+function clearForm(all=true){["freight","origin","dest","km0","km1","liters","tolls","other","notes"].forEach(x=>$(x).value="");$("diesel").value="5.64";if(all)$("preview").style.display="none"}
+function show(which,btn){
+ ["nova","mes","historico"].forEach(x=>$(x).style.display=x===which?"block":"none");
+ document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));btn.classList.add("active");
+ if(which==="historico")renderHistory();if(which==="mes")renderMonth();
+}
+function renderHistory(){
+ $("history").innerHTML=trips.length?trips.map(t=>{const c=calc(t);return `<div class="trip"><div class="row"><b>${t.origin} → ${t.dest}</b>${badge(c.status)}</div><div class="muted">${t.date} · ${c.km} km</div><p>Frete <b>${money(t.freight)}</b> · Sobra <b>${money(c.profit)}</b> · Média <b>${c.avg?c.avg.toFixed(2):"—"} km/L</b></p><button class="danger" onclick="delTrip(${t.id})">Excluir</button></div>`}).join(""):"<p class='muted'>Nenhuma viagem registrada.</p>";
+}
+function delTrip(id){if(confirm("Excluir esta viagem?")){trips=trips.filter(t=>t.id!==id);localStorage.setItem(KEY,JSON.stringify(trips));renderHistory();renderMonth()}}
+function renderMonth(){
+ const m=$("month").value, arr=trips.filter(t=>t.date.startsWith(m));
+ let rev=0,km=0,diesel=0,comm=0,tolls=0,other=0,profit=0,lit=0;
+ arr.forEach(t=>{let c=calc(t);rev+=t.freight;km+=c.km;diesel+=c.diesel;comm+=c.comm;tolls+=t.tolls;other+=t.other;profit+=c.profit;lit+=t.liters});
+ $("monthReport").innerHTML=`<p><b>${arr.length}</b> viagens</p><div class="kpis">
+ <div class="kpi">Faturamento<b>${money(rev)}</b></div><div class="kpi">Lucro<b>${money(profit)}</b></div>
+ <div class="kpi">KM<b>${km.toLocaleString("pt-BR")}</b></div><div class="kpi">Média<b>${lit? (km/lit).toFixed(2):"—"} km/L</b></div>
+ <div class="kpi">Diesel<b>${money(diesel)}</b></div><div class="kpi">Comissões<b>${money(comm)}</b></div>
+ <div class="kpi">Pedágios<b>${money(tolls)}</b></div><div class="kpi">Outras despesas<b>${money(other)}</b></div></div>
+ <hr><b>Margem média sobre faturamento:</b> ${rev?(profit/rev*100).toFixed(1):"0.0"}%`;
+}
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
+renderHistory();renderMonth();
+</script></body></html>
