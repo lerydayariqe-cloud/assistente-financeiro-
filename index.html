@@ -1,111 +1,36 @@
-<!doctype html>
-<html lang="pt-BR">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#111827"><link rel="manifest" href="manifest.json">
-<title>Assistente Financeiro</title>
-<style>
-*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f3f4f6;color:#111827}
-header{background:#111827;color:white;padding:18px 16px calc(18px + env(safe-area-inset-top));position:sticky;top:0;z-index:3}
-h1{font-size:21px;margin:0 0 4px}small{opacity:.8}.wrap{max-width:760px;margin:auto;padding:14px 14px 90px}
-.card{background:white;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 2px 10px #0000000d}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:520px){.grid{grid-template-columns:1fr}}
-label{font-size:13px;font-weight:600;display:block;margin:8px 0 5px}input,textarea{width:100%;padding:12px;border:1px solid #d1d5db;border-radius:10px;font-size:16px;background:#fff}
-button{border:0;border-radius:11px;padding:12px 15px;font-size:15px;font-weight:700;cursor:pointer}.primary{background:#111827;color:#fff}.secondary{background:#e5e7eb;color:#111827}.danger{background:#fee2e2;color:#991b1b}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.tabs{display:flex;gap:8px;overflow:auto;margin-bottom:14px}.tab{white-space:nowrap;background:#e5e7eb}.tab.active{background:#111827;color:white}
-.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.kpi{padding:13px;border-radius:13px;background:#f9fafb}.kpi b{display:block;font-size:20px;margin-top:4px}
-.good{background:#dcfce7;color:#166534}.mid{background:#fef3c7;color:#92400e}.bad{background:#fee2e2;color:#991b1b}
-.trip{border:1px solid #e5e7eb;border-radius:13px;padding:13px;margin-top:10px}.muted{color:#6b7280}.row{display:flex;justify-content:space-between;gap:8px}.pill{display:inline-block;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:800}
-hr{border:0;border-top:1px solid #e5e7eb;margin:15px 0}
-#install{display:none;background:#dbeafe;color:#1e40af}
-</style></head>
-<body>
-<header><h1>🚛 Assistente Financeiro</h1><small>Controle de viagens e rentabilidade</small></header>
-<div class="wrap">
-<div id="install" class="card"><b>📱 Instale no iPhone</b><p>Abra este app pelo Safari e use <b>Compartilhar → Adicionar à Tela de Início</b>.</p></div>
-<div class="tabs">
-<button class="tab active" onclick="show('nova',this)">Nova viagem</button>
-<button class="tab" onclick="show('mes',this)">Relatório mensal</button>
-<button class="tab" onclick="show('historico',this)">Histórico</button>
-</div>
-
-<section id="nova">
-<div class="card"><h2>Registrar viagem</h2>
-<div class="grid">
-<div><label>Data</label><input id="date" type="date"></div>
-<div><label>Frete (R$)</label><input id="freight" type="number" step=".01" inputmode="decimal"></div>
-<div><label>Origem</label><input id="origin" placeholder="Ex.: Cândido Mota"></div>
-<div><label>Destino</label><input id="dest" placeholder="Ex.: Cascavel"></div>
-<div><label>KM inicial</label><input id="km0" type="number" step="1"></div>
-<div><label>KM final</label><input id="km1" type="number" step="1"></div>
-<div><label>Litros abastecidos</label><input id="liters" type="number" step=".01"></div>
-<div><label>Preço diesel (R$/L)</label><input id="diesel" type="number" step=".01" value="5.64"></div>
-<div><label>Pedágios (R$)</label><input id="tolls" type="number" step=".01" value="0"></div>
-<div><label>Outras despesas (R$)</label><input id="other" type="number" step=".01" value="0"></div>
-</div>
-<label>Observações</label><textarea id="notes" rows="2" placeholder="Ex.: 2 dias, carga, desvio..."></textarea>
-<div class="actions"><button class="primary" onclick="saveTrip()">Salvar viagem</button><button class="secondary" onclick="clearForm()">Limpar</button></div>
-</div>
-<div id="preview" class="card" style="display:none"></div>
-</section>
-
-<section id="mes" style="display:none"><div class="card"><h2>Relatório mensal</h2>
-<label>Mês</label><input id="month" type="month" onchange="renderMonth()"><div id="monthReport"></div></div></section>
-
-<section id="historico" style="display:none"><div class="card"><h2>Viagens salvas</h2><div id="history"></div></div></section>
-</div>
-<script>
-const KEY="af_trips_v1";
-const $=id=>document.getElementById(id);
-let trips=JSON.parse(localStorage.getItem(KEY)||"[]");
-$("date").value=new Date().toISOString().slice(0,10);
-$("month").value=new Date().toISOString().slice(0,7);
-
-function money(v){return (Number(v)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}
-function num(id){return Number($(id).value)||0}
-function calc(t){
- const km=Math.max(0,t.km1-t.km0), diesel=t.liters*t.diesel, comm=t.freight*.13;
- const total=diesel+comm+t.tolls+t.other, profit=t.freight-total;
- const avg=t.liters>0?km/t.liters:0, cpk=km?total/km:0, margin=t.freight?profit/t.freight:0;
- let status=margin>=.25?"BOM":margin>=.12?"ACEITÁVEL":"RUIM";
- return {km,diesel,comm,total,profit,avg,cpk,margin,status};
-}
-function badge(s){return `<span class="pill ${s==="BOM"?"good":s==="ACEITÁVEL"?"mid":"bad"}">${s}</span>`}
-function saveTrip(){
- const t={id:Date.now(),date:$("date").value,freight:num("freight"),origin:$("origin").value.trim(),dest:$("dest").value.trim(),km0:num("km0"),km1:num("km1"),liters:num("liters"),diesel:num("diesel"),tolls:num("tolls"),other:num("other"),notes:$("notes").value.trim()};
- if(!t.freight||!t.origin||!t.dest||t.km1<t.km0){alert("Preencha frete, origem, destino e KM corretamente.");return}
- trips.unshift(t);localStorage.setItem(KEY,JSON.stringify(trips));showPreview(t);clearForm(false);renderHistory();renderMonth();
-}
-function showPreview(t){
- const c=calc(t);$("preview").style.display="block";
- $("preview").innerHTML=`<h2>${t.origin} → ${t.dest} ${badge(c.status)}</h2>
- <div class="kpis"><div class="kpi">Frete<b>${money(t.freight)}</b></div><div class="kpi">Sobra<b>${money(c.profit)}</b></div>
- <div class="kpi">KM<b>${c.km.toLocaleString("pt-BR")}</b></div><div class="kpi">Média<b>${c.avg?c.avg.toFixed(2):"—"} km/L</b></div>
- <div class="kpi">Diesel<b>${money(c.diesel)}</b></div><div class="kpi">Comissão 13%<b>${money(c.comm)}</b></div>
- <div class="kpi">Pedágios<b>${money(t.tolls)}</b></div><div class="kpi">Custo total<b>${money(c.total)}</b></div></div>
- <hr><b>Lucro por km:</b> ${c.km?money(c.profit/c.km):"—"} &nbsp; <b>Margem:</b> ${(c.margin*100).toFixed(1)}%`;
-}
-function clearForm(all=true){["freight","origin","dest","km0","km1","liters","tolls","other","notes"].forEach(x=>$(x).value="");$("diesel").value="5.64";if(all)$("preview").style.display="none"}
-function show(which,btn){
- ["nova","mes","historico"].forEach(x=>$(x).style.display=x===which?"block":"none");
- document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));btn.classList.add("active");
- if(which==="historico")renderHistory();if(which==="mes")renderMonth();
-}
-function renderHistory(){
- $("history").innerHTML=trips.length?trips.map(t=>{const c=calc(t);return `<div class="trip"><div class="row"><b>${t.origin} → ${t.dest}</b>${badge(c.status)}</div><div class="muted">${t.date} · ${c.km} km</div><p>Frete <b>${money(t.freight)}</b> · Sobra <b>${money(c.profit)}</b> · Média <b>${c.avg?c.avg.toFixed(2):"—"} km/L</b></p><button class="danger" onclick="delTrip(${t.id})">Excluir</button></div>`}).join(""):"<p class='muted'>Nenhuma viagem registrada.</p>";
-}
-function delTrip(id){if(confirm("Excluir esta viagem?")){trips=trips.filter(t=>t.id!==id);localStorage.setItem(KEY,JSON.stringify(trips));renderHistory();renderMonth()}}
-function renderMonth(){
- const m=$("month").value, arr=trips.filter(t=>t.date.startsWith(m));
- let rev=0,km=0,diesel=0,comm=0,tolls=0,other=0,profit=0,lit=0;
- arr.forEach(t=>{let c=calc(t);rev+=t.freight;km+=c.km;diesel+=c.diesel;comm+=c.comm;tolls+=t.tolls;other+=t.other;profit+=c.profit;lit+=t.liters});
- $("monthReport").innerHTML=`<p><b>${arr.length}</b> viagens</p><div class="kpis">
- <div class="kpi">Faturamento<b>${money(rev)}</b></div><div class="kpi">Lucro<b>${money(profit)}</b></div>
- <div class="kpi">KM<b>${km.toLocaleString("pt-BR")}</b></div><div class="kpi">Média<b>${lit? (km/lit).toFixed(2):"—"} km/L</b></div>
- <div class="kpi">Diesel<b>${money(diesel)}</b></div><div class="kpi">Comissões<b>${money(comm)}</b></div>
- <div class="kpi">Pedágios<b>${money(tolls)}</b></div><div class="kpi">Outras despesas<b>${money(other)}</b></div></div>
- <hr><b>Margem média sobre faturamento:</b> ${rev?(profit/rev*100).toFixed(1):"0.0"}%`;
-}
-if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
-renderHistory();renderMonth();
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#173b58"><title>RHD Transportes</title><link rel="manifest" href="manifest.json"><style>
+*{box-sizing:border-box}body{margin:0;background:#f2f5f7;color:#17212b;font:16px system-ui}header{background:#173b58;color:white;padding:20px}main{max-width:850px;margin:auto;padding:14px}nav{display:flex;gap:7px;overflow:auto;margin-bottom:12px}button,.btn{border:0;border-radius:9px;padding:11px 13px;background:#e1e9ef;color:#173b58;font-weight:650;white-space:nowrap}nav .active,.primary{background:#173b58;color:white}.card{background:white;border:1px solid #dfe5ea;border-radius:14px;padding:15px;margin-bottom:12px}h2{font-size:18px;margin:0 0 12px}.grid,.metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.field{margin-bottom:9px}label{display:block;color:#687480;font-size:13px;margin-bottom:4px}input,select,textarea{width:100%;padding:11px;border:1px solid #cbd4dc;border-radius:8px;font:inherit;background:white}textarea{min-height:65px}.metric{background:#f0f4f7;padding:10px;border-radius:9px}.metric small{display:block;color:#65717c}.metric b{font-size:18px}.trip{border-top:1px solid #e2e7eb;padding:12px 0}.muted{font-size:13px;color:#687480}.hidden{display:none!important}.wide{grid-column:1/-1}.danger{background:#fae8e7;color:#a52f2b}@media(min-width:650px){.metrics{grid-template-columns:repeat(4,1fr)}.grid{grid-template-columns:repeat(3,1fr)}}
+</style></head><body><header><b>RHD Transportes</b><div class="muted" style="color:#dce8ef">Controle financeiro â¢ Iveco e DAF XF 480</div></header><main>
+<nav><button class="active" data-tab="home">Painel</button><button data-tab="trips">Viagens</button><button data-tab="new">Novo frete</button><button data-tab="fixed">Despesas fixas</button><button data-tab="report">RelatÃ³rio</button><button data-tab="backup">Backup</button></nav>
+<section id="home" class="tab"><div class="card"><h2>Resumo do mÃªs</h2><label>CaminhÃ£o</label><select id="dashTruck"><option value="todos">Todos</option><option value="iveco">Iveco</option><option value="daf">DAF XF 480</option></select><div class="metrics" id="dash" style="margin-top:10px"></div></div><div class="card"><h2>Ãltimas viagens</h2><div id="recent"></div></div></section>
+<section id="trips" class="tab hidden"><div class="card"><h2>HistÃ³rico</h2><div class="grid"><div><label>CaminhÃ£o</label><select id="filterTruck"><option value="todos">Todos</option><option value="iveco">Iveco</option><option value="daf">DAF XF 480</option></select></div><div><label>MÃªs</label><input id="filterMonth" type="month"></div></div><div id="tripList"></div></div></section>
+<section id="new" class="tab hidden"><div class="card"><h2>LanÃ§ar frete</h2><form id="tripForm"><div class="grid">
+<div class="field"><label>CaminhÃ£o</label><select name="truckId"><option value="iveco">Iveco</option><option value="daf">DAF XF 480</option></select></div>
+<div class="field"><label>Data</label><input name="date" type="date" required></div><div class="field"><label>Motorista</label><input name="driver"></div>
+<div class="field"><label>Frete bruto (R$)</label><input name="freight" type="number" step=".01" required></div><div class="field"><label>Origem</label><input name="origin" required></div><div class="field"><label>Destino</label><input name="destination" required></div>
+<div class="field"><label>OdÃ´metro inicial</label><input name="odoStart" type="number" required></div><div class="field"><label>OdÃ´metro final</label><input name="odoEnd" type="number" required></div>
+<div class="field"><label>Diesel inicial (L)</label><input name="fuelStart" type="number" step=".1"></div><div class="field"><label>Litros abastecidos</label><input name="fuelAdded" type="number" step=".1"></div><div class="field"><label>Diesel final (L)</label><input name="fuelEnd" type="number" step=".1"></div>
+<div class="field"><label>PreÃ§o diesel (R$/L)</label><input name="dieselPrice" type="number" step=".001" value="5.64"></div><div class="field"><label>PedÃ¡gios (R$)</label><input name="tolls" type="number" step=".01" value="0"></div><div class="field"><label>Outras despesas (R$)</label><input name="other" type="number" step=".01" value="0"></div><div class="field"><label>ComissÃ£o (%)</label><input name="commissionRate" type="number" step=".1" value="13"></div><div class="field wide"><label>ObservaÃ§Ãµes</label><textarea name="notes"></textarea></div></div><p class="muted">Diesel consumido = saldo inicial + abastecimentos â saldo final. ComissÃ£o padrÃ£o: 13% do frete.</p><button class="primary">Salvar frete</button></form></div></section>
+<section id="fixed" class="tab hidden"><div class="card"><h2>Despesas fixas mensais</h2><form id="expenseForm"><div class="grid"><div><label>CaminhÃ£o</label><select name="truckId"><option value="iveco">Iveco</option><option value="daf">DAF XF 480</option><option value="todos">Empresa / ambos</option></select></div><div><label>DescriÃ§Ã£o</label><input name="description" placeholder="Parcela, seguro, rastreador" required></div><div><label>Valor mensal (R$)</label><input name="amount" type="number" step=".01" required></div></div><button class="primary">Adicionar</button></form><div id="expenseList"></div></div></section>
+<section id="report" class="tab hidden"><div class="card"><h2>RelatÃ³rio mensal</h2><div class="grid"><div><label>MÃªs</label><input id="reportMonth" type="month"></div><div><label>CaminhÃ£o</label><select id="reportTruck"><option value="todos">Todos</option><option value="iveco">Iveco</option><option value="daf">DAF XF 480</option></select></div></div><div id="reportBody"></div></div></section>
+<section id="backup" class="tab hidden"><div class="card"><h2>Backup dos dados</h2><p>Os dados ficam salvos no navegador deste celular. Baixe uma cÃ³pia de seguranÃ§a regularmente.</p><button class="primary" id="export">Baixar backup completo</button> <label class="btn" for="import">Restaurar backup JSON</label><input id="import" type="file" accept="application/json" class="hidden"><p class="muted">Viagens antigas sem identificaÃ§Ã£o recebem o caminhÃ£o Iveco automaticamente. Nenhum registro antigo Ã© apagado. O DAF comeÃ§a vazio.</p></div></section>
+</main><script>
+const KEY='af_trips_v1',EXKEY='rhd_fixed_expenses_v1',money=n=>(Number(n)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}),N=n=>Number(n)||0,truckName=id=>id==='daf'?'DAF XF 480':'Iveco',monthNow=()=>new Date().toISOString().slice(0,7);
+let trips=[];try{trips=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(trips))trips=[]}catch(e){trips=[]}
+let expenses=[];try{expenses=JSON.parse(localStorage.getItem(EXKEY)||'[]')}catch(e){expenses=[]}
+let migrated=false;trips=trips.map(t=>{if(!t.truckId){migrated=true;return {...t,truckId:'iveco',legacy:true}}return t});if(migrated)localStorage.setItem(KEY,JSON.stringify(trips));
+const save=()=>localStorage.setItem(KEY,JSON.stringify(trips)),saveEx=()=>localStorage.setItem(EXKEY,JSON.stringify(expenses));
+function calc(t){let km=Math.max(0,N(t.odoEnd)-N(t.odoStart)),liters=t.legacy?N(t.liters):Math.max(0,N(t.fuelStart)+N(t.fuelAdded)-N(t.fuelEnd)),diesel=liters*N(t.dieselPrice||5.64),commission=N(t.freight)*N(t.commissionRate??13)/100;return {km,liters,diesel,commission,profit:N(t.freight)-diesel-N(t.tolls)-N(t.other)-commission}}
+function pick(month,truck){return trips.filter(t=>(!month||(t.date||'').slice(0,7)===month)&&(truck==='todos'||(t.truckId||'iveco')===truck))}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function tripHTML(t){let c=calc(t);return `<div class="trip"><b>${truckName(t.truckId||'iveco')} Â· ${esc(t.origin)} â ${esc(t.destination)}</b><div class="muted">${esc(t.date)} Â· Frete ${money(t.freight)} Â· ${c.km} km</div><div class="muted">Diesel ${money(c.diesel)} Â· PedÃ¡gio ${money(t.tolls)} Â· ComissÃ£o ${money(c.commission)} Â· Resultado ${money(c.profit)}</div></div>`}
+function render(){let m=monthNow(),truck=dashTruck.value,a=pick(m,truck),s={gross:0,diesel:0,tolls:0,other:0,comm:0,profit:0,km:0,liters:0};a.forEach(t=>{let c=calc(t);s.gross+=N(t.freight);s.diesel+=c.diesel;s.tolls+=N(t.tolls);s.other+=N(t.other);s.comm+=c.commission;s.profit+=c.profit;s.km+=c.km;s.liters+=c.liters});let fixed=expenses.filter(e=>truck==='todos'||e.truckId==='todos'||e.truckId===truck).reduce((x,e)=>x+N(e.amount),0);dash.innerHTML=[['Faturamento',money(s.gross)],['Diesel',money(s.diesel)],['PedÃ¡gios',money(s.tolls)],['ComissÃµes',money(s.comm)],['Despesas fixas',money(fixed)],['Resultado antes das fixas',money(s.profit)],['Km rodados',s.km],['MÃ©dia',s.liters?(s.km/s.liters).toFixed(2)+' km/L':'â']].map(x=>`<div class="metric"><small>${x[0]}</small><b>${x[1]}</b></div>`).join('');recent.innerHTML=trips.slice().sort((x,y)=>(y.date||'').localeCompare(x.date||'')).slice(0,5).map(tripHTML).join('')||'<p class="muted">Nenhuma viagem cadastrada.</p>';let shown=pick(filterMonth.value,filterTruck.value).slice().sort((x,y)=>(y.date||'').localeCompare(x.date||''));tripList.innerHTML=shown.map(t=>`<div>${tripHTML(t)}<button class="danger" onclick="delTrip('${t.id}')">Excluir frete</button></div>`).join('')||'<p class="muted">Nenhum frete encontrado.</p>';expenseList.innerHTML=expenses.map(e=>`<div class="trip"><b>${truckName(e.truckId)} Â· ${esc(e.description)}</b><div>${money(e.amount)} / mÃªs</div><button class="danger" onclick="delEx('${e.id}')">Excluir</button></div>`).join('');renderReport()}
+function renderReport(){let a=pick(reportMonth.value,reportTruck.value),s={gross:0,diesel:0,tolls:0,other:0,comm:0,km:0,liters:0};a.forEach(t=>{let c=calc(t);s.gross+=N(t.freight);s.diesel+=c.diesel;s.tolls+=N(t.tolls);s.other+=N(t.other);s.comm+=c.commission;s.km+=c.km;s.liters+=c.liters});let f=expenses.filter(e=>reportTruck.value==='todos'||e.truckId==='todos'||e.truckId===reportTruck.value).reduce((x,e)=>x+N(e.amount),0),res=s.gross-s.diesel-s.tolls-s.other-s.comm-f;reportBody.innerHTML=`<p>${a.length} frete(s) no mÃªs</p><div class="trip">Faturamento: <b>${money(s.gross)}</b></div><div class="trip">Diesel: <b>${money(s.diesel)}</b></div><div class="trip">PedÃ¡gios: <b>${money(s.tolls)}</b></div><div class="trip">Outras despesas: <b>${money(s.other)}</b></div><div class="trip">ComissÃµes: <b>${money(s.comm)}</b></div><div class="trip">Despesas fixas: <b>${money(f)}</b></div><div class="trip">Resultado estimado: <b>${money(res)}</b></div><p>DistÃ¢ncia ${s.km} km Â· Diesel consumido ${s.liters.toFixed(1)} L Â· MÃ©dia ${s.liters?(s.km/s.liters).toFixed(2)+' km/L':'â'}</p>`}
+window.delTrip=id=>{if(confirm('Excluir este frete?')){trips=trips.filter(t=>t.id!==id);save();render()}};window.delEx=id=>{if(confirm('Excluir despesa?')){expenses=expenses.filter(e=>e.id!==id);saveEx();render()}};
+tripForm.onsubmit=e=>{e.preventDefault();let t=Object.fromEntries(new FormData(e.target));['freight','odoStart','odoEnd','fuelStart','fuelAdded','fuelEnd','dieselPrice','tolls','other','commissionRate'].forEach(k=>t[k]=N(t[k]));if(t.odoEnd<t.odoStart){alert('OdÃ´metro final menor que o inicial.');return}t.id=(crypto.randomUUID?crypto.randomUUID():String(Date.now()));trips.push(t);save();e.target.reset();tripForm.elements.dieselPrice.value='5.64';tripForm.elements.commissionRate.value='13';render();show('home');alert('Frete salvo!')};
+expenseForm.onsubmit=e=>{e.preventDefault();let t=Object.fromEntries(new FormData(e.target));t.id=String(Date.now());t.amount=N(t.amount);expenses.push(t);saveEx();e.target.reset();render()};
+export.onclick=()=>{let blob=new Blob([JSON.stringify({app:'RHD Transportes',version:2,trips,expenses},null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='backup-rhd-transportes.json';a.click();URL.revokeObjectURL(a.href)};
+import.onchange=async e=>{try{let d=JSON.parse(await e.target.files[0].text());if(!Array.isArray(d.trips))throw 0;if(confirm('Restaurar backup? Os dados atuais serÃ£o substituÃ­dos.')){trips=d.trips.map(t=>({...t,truckId:t.truckId||'iveco'}));expenses=Array.isArray(d.expenses)?d.expenses:[];save();saveEx();render();alert('Backup restaurado')}}catch(x){alert('Backup invÃ¡lido')}e.target.value=''};
+function show(id){document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('hidden',x.id!==id));document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x.dataset.tab===id))}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>show(b.dataset.tab));['dashTruck','filterTruck','filterMonth','reportMonth','reportTruck'].forEach(id=>document.getElementById(id).addEventListener('change',render));filterMonth.value=reportMonth.value=monthNow();render();if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));
 </script></body></html>
