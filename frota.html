@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#203b56"><title>Leandro — Gestão da Frota e Finanças Pessoais</title>
+<style>
+:root{--n:#203b56;--bg:#f1f4f7;--line:#dce3e9;--ink:#17212b;--muted:#687684;--red:#b42318;--green:#167347;--amber:#946200}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}header{background:var(--n);color:white;padding:18px}header h1{margin:0 0 6px;font-size:22px}header a{color:#e4eff8}main{max-width:1050px;margin:auto;padding:12px}.nav{display:flex;gap:7px;overflow:auto;padding:8px 0 14px;position:sticky;top:0;background:var(--bg);z-index:3}button,.btn{border:0;border-radius:11px;padding:11px 14px;background:#e0e8ef;color:var(--n);font-weight:650;font-size:14px;cursor:pointer;white-space:nowrap}button.active,.primary{background:var(--n);color:white}.danger{background:#fee4e2;color:var(--red)}.panel{background:white;border:1px solid var(--line);border-radius:15px;padding:14px;margin-bottom:12px}h2{font-size:20px;margin:0 0 13px}h3{font-size:16px;margin:15px 0 8px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.field{min-width:0}.field label{display:block;color:var(--muted);font-size:13px;font-weight:650;margin-bottom:5px}input,select,textarea{width:100%;min-width:0;border:1px solid #cbd5df;border-radius:10px;padding:11px;background:white;font:16px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink)}textarea{min-height:65px}.wide{grid-column:1/-1}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.hidden{display:none!important}.muted{font-size:13px;color:var(--muted)}.card{border:1px solid var(--line);border-radius:12px;padding:12px;margin:9px 0}.row{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.kpi{background:#f6f8fa;border:1px solid var(--line);border-radius:11px;padding:11px}.kpi small{display:block;color:var(--muted)}.kpi strong{font-size:19px}.notice{padding:11px;background:#fff6dc;border:1px solid #efd58c;border-radius:11px;font-size:14px;margin:10px 0}.ok{color:var(--green)}.warn{color:var(--amber)}.late{color:var(--red)}table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;padding:8px 5px;border-bottom:1px solid var(--line)}th{color:var(--muted)}img.receipt{max-width:115px;max-height:115px;object-fit:cover;border-radius:8px;margin:5px}footer{text-align:center;color:var(--muted);font-size:12px;padding:12px}@media(min-width:700px){.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}}@media(max-width:430px){main{padding:9px}.panel{padding:12px}}
+</style></head><body>
+<header><h1>Gestão da Frota</h1><div>Leandro — RHD Transportes</div><p><a href="index.html">Voltar ao Assistente Financeiro</a></p></header>
+<main>
+<nav class="nav" aria-label="Navegação">
+<button data-tab="home" class="active">Resumo</button><button data-tab="fuel">Abastecimentos</button><button data-tab="maint">Manutenções</button><button data-tab="tires">Pneus</button><button data-tab="docs">Seguros e documentos</button><button data-tab="receipts">Comprovantes</button><button data-tab="annual">Comparativo anual</button><button data-tab="personal">Despesas pessoais</button>
+</nav>
+<section id="home" class="tab">
+<div class="panel"><h2>Resumo da frota</h2><div id="homeSummary"></div></div>
+<div class="panel"><h2>Alertas de manutenção e documentos</h2><div id="alerts"></div></div>
+</section>
+<section id="fuel" class="tab hidden">
+<div class="panel"><h2>Registrar abastecimento</h2><div class="grid">
+<div class="field"><label>Caminhão</label><select id="fuelTruck"><option value="iveco">Iveco</option><option value="daf">DAF</option></select></div>
+<div class="field"><label>Data</label><input id="fuelDate" type="date"></div>
+<div class="field"><label>Quilometragem</label><input id="fuelKm" type="number"></div>
+<div class="field"><label>Litros abastecidos</label><input id="fuelLiters" type="number" step="0.01"></div>
+<div class="field"><label>Preço por litro (R$)</label><input id="fuelPrice" type="number" step="0.01" value="5.64"></div>
+<div class="field"><label>Tipo de abastecimento</label><select id="fuelFull"><option value="yes">Tanque cheio</option><option value="no">Abastecimento parcial</option></select></div>
+<div class="field wide"><label>Observação</label><input id="fuelNote"></div></div><div class="actions"><button class="primary" id="saveFuel">Salvar abastecimento</button></div></div>
+<div class="panel"><h2>Histórico de abastecimentos</h2><div id="fuelList"></div></div>
+</section>
+<section id="maint" class="tab hidden">
+<div class="panel"><h2>Registrar manutenção</h2><div class="grid">
+<div class="field"><label>Caminhão</label><select id="maintTruck"><option value="iveco">Iveco</option><option value="daf">DAF</option></select></div>
+<div class="field"><label>Manutenção</label><select id="maintType"><option value="motor">Óleo do motor</option><option value="cambio">Óleo do câmbio</option><option value="diferencial">Óleo do diferencial</option><option value="outra">Outra manutenção</option></select></div>
+<div class="field"><label>Data da troca</label><input id="maintDate" type="date"></div>
+<div class="field"><label>KM da troca</label><input id="maintKm" type="number"></div>
+<div class="field"><label>Custo (R$)</label><input id="maintCost" type="number" step="0.01"></div>
+<div class="field"><label>Intervalo (km)</label><input id="maintInterval" type="number"></div>
+<div class="field wide"><label>Descrição / observação</label><input id="maintNote"></div></div><div class="actions"><button class="primary" id="saveMaint">Salvar manutenção</button></div></div>
+<div class="panel"><h2>Próximas manutenções</h2><div id="maintStatus"></div></div>
+<div class="panel"><h2>Histórico de manutenções</h2><div id="maintList"></div></div>
+</section>
+<section id="tires" class="tab hidden">
+<div class="panel"><h2>Cadastrar pneu</h2><div class="grid">
+<div class="field"><label>Caminhão</label><select id="tTruck"><option value="iveco">Iveco</option><option value="daf">DAF</option></select></div>
+<div class="field"><label>Posição do pneu</label><input id="tPosition" placeholder="Ex.: dianteiro esquerdo"></div>
+<div class="field"><label>Marca</label><input id="tBrand"></div>
+<div class="field"><label>Data de instalação</label><input id="tDate" type="date"></div>
+<div class="field"><label>KM de instalação</label><input id="tKm" type="number"></div>
+<div class="field"><label>Vida prevista (km)</label><input id="tLife" type="number" value="80000"></div>
+<div class="field"><label>Valor do pneu (R$)</label><input id="tCost" type="number" step="0.01"></div>
+<div class="field"><label>Número de recapagens</label><input id="tRecaps" type="number" value="0"></div></div><div class="actions"><button class="primary" id="saveTire">Salvar pneu</button></div></div>
+<div class="panel"><h2>Registrar evento do pneu</h2><div class="grid">
+<div class="field"><label>Pneu</label><select id="eventTire"></select></div>
+<div class="field"><label>Tipo de evento</label><select id="eventType"><option value="Recapagem">Recapagem</option><option value="Rodízio">Rodízio</option><option value="Troca">Troca</option><option value="Baixa">Baixa / descarte</option></select></div>
+<div class="field"><label>Data</label><input id="eventDate" type="date"></div>
+<div class="field"><label>KM</label><input id="eventKm" type="number"></div>
+<div class="field"><label>Custo (R$)</label><input id="eventCost" type="number" step="0.01"></div>
+<div class="field wide"><label>Observação</label><input id="eventNote"></div></div><div class="actions"><button class="primary" id="saveEvent">Salvar evento</button></div></div>
+<div class="panel"><h2>Pneus cadastrados</h2><div id="tireList"></div></div>
+<div class="panel"><h2>Histórico de eventos</h2><div id="eventList"></div></div>
+</section>
+<section id="docs" class="tab hidden">
+<div class="panel"><h2>Seguros, impostos e documentos</h2><div class="grid">
+<div class="field"><label>Caminhão</label><select id="docTruck"><option value="iveco">Iveco</option><option value="daf">DAF</option><option value="both">Ambos / pessoal</option></select></div>
+<div class="field"><label>Tipo</label><select id="docType"><option>Seguro</option><option>IPVA</option><option>Licenciamento</option><option>CRLV</option><option>Multa</option><option>Inspeção / tacógrafo</option><option>Outro</option></select></div>
+<div class="field"><label>Vencimento</label><input id="docDue" type="date"></div>
+<div class="field"><label>Valor (R$)</label><input id="docValue" type="number" step="0.01"></div>
+<div class="field wide"><label>Descrição</label><input id="docNote"></div></div><div class="actions"><button class="primary" id="saveDoc">Salvar compromisso</button></div></div>
+<div class="panel"><h2>Vencimentos e pagamentos</h2><div id="docList"></div></div>
+</section>
+<section id="receipts" class="tab hidden">
+<div class="panel"><h2>Guardar comprovantes</h2><p class="muted">Fotos e PDFs ficam guardados neste navegador/dispositivo. Faça cópias externas importantes.</p><div class="grid">
+<div class="field"><label>Caminhão</label><select id="rTruck"><option value="iveco">Iveco</option><option value="daf">DAF</option><option value="personal">Pessoal</option></select></div>
+<div class="field"><label>Data</label><input id="rDate" type="date"></div>
+<div class="field"><label>Descrição</label><input id="rDesc"></div>
+<div class="field"><label>Arquivo (foto ou PDF, até 8 MB)</label><input id="rFile" type="file" accept="image/*,application/pdf"></div></div><div class="actions"><button class="primary" id="saveReceipt">Salvar comprovante</button></div></div>
+<div class="panel"><h2>Comprovantes guardados</h2><div id="receiptList"></div></div>
+</section>
+<section id="annual" class="tab hidden">
+<div class="panel"><h2>Comparativo anual Iveco x DAF</h2><div class="field"><label>Ano</label><input id="annualYear" type="number"></div><div id="annualResult"></div></div>
+</section><section id="personal" class="tab hidden"><div class="panel"><h2>Leandro — Assistente financeiro pessoal</h2><p class="muted">As comissões das viagens do Iveco entram automaticamente como receitas. Cadastre abaixo seus gastos pessoais.</p><div class="notice">Receita automática: comissão do Iveco calculada sobre os fretes registrados no controle principal. Viagens do DAF não entram neste saldo pessoal.</div><div id="personalSummary"></div><h3>Receitas de comissão do Iveco</h3><div id="personalIncomeList"></div></div><div class="panel"><h2>Registrar despesa pessoal</h2>
+<div class="grid">
+<div class="field"><label>Data</label><input id="personalDate" type="date"></div>
+<div class="field"><label>Valor (R$)</label><input id="personalAmount" type="number" step="0.01"></div>
+<div class="field"><label>Descrição</label><input id="personalDesc" placeholder="Ex.: mercado, alimentação"></div>
+<div class="field"><label>Categoria</label><select id="personalCategory"><option>Casa</option><option>Alimentação</option><option>Saúde</option><option>Veículo particular</option><option>Lazer</option><option>Compras</option><option>Contas</option><option>Outros</option></select></div>
+<div class="field"><label>Forma de pagamento</label><select id="personalPayment"><option value="cartao">Cartão</option><option value="pix">Pix</option><option value="dinheiro">Dinheiro</option></select></div>
+<div class="field wide"><label>Observação</label><input id="personalDetail"></div>
+</div><div class="actions"><button class="primary" id="savePersonal">Salvar despesa pessoal</button></div></div>
+<div class="panel"><h2>Resumo e histórico de despesas</h2><div class="field"><label>Filtrar mês</label><input id="personalMonth" type="month"></div><div id="personalList"></div></div>
+</section>
+</main><footer>RHD Transportes • Controle local da frota e finanças pessoais</footer>
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const N=v=>Number(v)||0, M=v=>N(v).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const today=()=>new Date().toLocaleDateString("en-CA");
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const KEYS={fuel:"rhd_fuel_v1",maint:"rhd_maint_v1",tires:"rhd_tires_v1",events:"rhd_tire_events_v1",docs:"rhd_docs_v1",personal:"rhd_personal_v1"};
+const load=k=>{try{return JSON.parse(localStorage.getItem(KEYS[k])||"[]")}catch{return[]}};
+const save=(k,v)=>localStorage.setItem(KEYS[k],JSON.stringify(v));
+const D={fuel:load("fuel"),maint:load("maint"),tires:load("tires"),events:load("events"),docs:load("docs"),personal:load("personal")};
+const T=x=>x==="daf"?"DAF":"Iveco";
+const defaults=(truck,type)=>({motor:truck==="daf"?28000:25000,cambio:truck==="daf"?360000:240000,diferencial:180000,outra:0}[type]||0);
+function currentKm(truck){return Math.max(0,...D.fuel.filter(x=>x.truck===truck).map(x=>N(x.km)))}
+function add(k,x){D[k].push(x);save(k,D[k]);render()}
+function del(k,id){D[k]=D[k].filter(x=>x.id!==id);save(k,D[k]);render()}
+function showTab(id){$$(".tab").forEach(x=>x.classList.toggle("hidden",x.id!==id));$$("[data-tab]").forEach(x=>x.classList.toggle("active",x.dataset.tab===id));render()}
+$$("[data-tab]").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.tab)));
+document.addEventListener("click",e=>{const b=e.target.closest("[data-del]");if(b&&confirm("Excluir este registro?"))del(b.dataset.del,b.dataset.id)});
+$("#fuelDate").value=today();$("#maintDate").value=today();$("#tDate").value=today();$("#eventDate").value=today();$("#docDue").value=today();$("#rDate").value=today();$("#personalDate").value=today();$("#personalMonth").value=today().slice(0,7);$("#annualYear").value=new Date().getFullYear();
+$("#maintTruck").addEventListener("change",()=>{$("#maintInterval").value=defaults($("#maintTruck").value,$("#maintType").value)});
+$("#maintType").addEventListener("change",()=>{$("#maintInterval").value=defaults($("#maintTruck").value,$("#maintType").value)});
+$("#maintInterval").value=defaults("iveco","motor");
+$("#saveFuel").onclick=()=>{let x={id:uid(),truck:$("#fuelTruck").value,date:$("#fuelDate").value,km:N($("#fuelKm").value),liters:N($("#fuelLiters").value),price:N($("#fuelPrice").value),full:$("#fuelFull").value==="yes",note:$("#fuelNote").value};if(!x.date||!x.km||!x.liters||!x.price)return alert("Preencha data, KM, litros e preço.");add("fuel",x);$("#fuelKm").value=$("#fuelLiters").value=$("#fuelNote").value="";};
+$("#saveMaint").onclick=()=>{let x={id:uid(),truck:$("#maintTruck").value,type:$("#maintType").value,date:$("#maintDate").value,km:N($("#maintKm").value),cost:N($("#maintCost").value),interval:N($("#maintInterval").value),note:$("#maintNote").value};if(!x.date||!x.km)return alert("Preencha a data e o KM da manutenção.");add("maint",x);$("#maintKm").value=$("#maintCost").value=$("#maintNote").value="";};
+$("#saveTire").onclick=()=>{let x={id:uid(),truck:$("#tTruck").value,position:$("#tPosition").value,brand:$("#tBrand").value,date:$("#tDate").value,km:N($("#tKm").value),life:N($("#tLife").value)||80000,cost:N($("#tCost").value),recaps:N($("#tRecaps").value)};if(!x.position||!x.date||!x.km)return alert("Preencha posição, data e KM.");add("tires",x);$("#tPosition").value=$("#tBrand").value=$("#tKm").value=$("#tCost").value="";};
+$("#saveEvent").onclick=()=>{let x={id:uid(),tireId:$("#eventTire").value,type:$("#eventType").value,date:$("#eventDate").value,km:N($("#eventKm").value),cost:N($("#eventCost").value),note:$("#eventNote").value};if(!x.tireId||!x.date)return alert("Selecione um pneu e a data.");add("events",x);$("#eventKm").value=$("#eventCost").value=$("#eventNote").value="";};
+$("#saveDoc").onclick=()=>{let x={id:uid(),truck:$("#docTruck").value,type:$("#docType").value,due:$("#docDue").value,value:N($("#docValue").value),note:$("#docNote").value,paid:false};if(!x.due)return alert("Informe o vencimento.");add("docs",x);$("#docValue").value=$("#docNote").value="";};$("#savePersonal").onclick=()=>{let x={id:uid(),date:$("#personalDate").value,amount:N($("#personalAmount").value),description:$("#personalDesc").value,category:$("#personalCategory").value,payment:$("#personalPayment").value,detail:$("#personalDetail").value};if(!x.date||!x.amount||!x.description)return alert("Preencha data, valor e descrição.");add("personal",x);$("#personalAmount").value=$("#personalDesc").value=$("#personalDetail").value="";};
+$("#personalMonth").onchange=renderPersonal;
+$("#saveReceipt").onclick=async()=>{let f=$("#rFile").files[0];if(!f)return alert("Escolha uma foto ou PDF.");if(f.size>8*1024*1024)return alert("O arquivo deve ter até 8 MB.");try{await receiptPut({id:uid(),truck:$("#rTruck").value,date:$("#rDate").value,desc:$("#rDesc").value,name:f.name,type:f.type,blob:f});$("#rDesc").value=$("#rFile").value="";render()}catch(e){alert("Não foi possível guardar o comprovante neste aparelho.")}};
+function receiptDB(){return new Promise((ok,no)=>{let r=indexedDB.open("rhd_receipts_db",1);r.onupgradeneeded=()=>r.result.createObjectStore("files",{keyPath:"id"});r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)})}
+async function receiptPut(x){let db=await receiptDB();return new Promise((ok,no)=>{let t=db.transaction("files","readwrite");t.objectStore("files").put(x);t.oncomplete=ok;t.onerror=()=>no(t.error)})}
+async function receiptAll(){let db=await receiptDB();return new Promise((ok,no)=>{let r=db.transaction("files").objectStore("files").getAll();r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)})}
+async function receiptDelete(id){let db=await receiptDB();return new Promise((ok,no)=>{let t=db.transaction("files","readwrite");t.objectStore("files").delete(id);t.oncomplete=ok;t.onerror=()=>no(t.error)})}
+async function renderReceipts(){try{let a=await receiptAll();$("#receiptList").innerHTML=a.map(x=>'<div class="card"><b>'+esc(x.desc||x.name)+'</b><p>'+esc(T(x.truck))+' • '+esc(x.date)+' • '+esc(x.name)+'</p>'+(x.type.startsWith("image/")?'<img class="receipt" src="'+URL.createObjectURL(x.blob)+'">':'')+'<button data-receipt-del="'+x.id+'" class="danger">Excluir</button></div>').join("")||'<p class="muted">Nenhum comprovante salvo.</p>';$$("[data-receipt-del]").forEach(b=>b.onclick=async()=>{if(confirm("Excluir comprovante?")){await receiptDelete(b.dataset.receiptDel);renderReceipts()}})}catch{$("#receiptList").textContent="Armazenamento de comprovantes indisponível neste navegador."}}
+function renderFuel(){let a=[...D.fuel].sort((x,y)=>y.date.localeCompare(x.date));$("#fuelList").innerHTML=a.map(x=>'<div class="card"><div class="row"><b>'+T(x.truck)+' • '+x.date+'</b><b>'+M(x.liters*x.price)+'</b></div><p>'+N(x.km).toLocaleString("pt-BR")+' km • '+x.liters+' L • '+M(x.price)+'/L • '+(x.full?"Tanque cheio":"Parcial")+'</p><p>'+esc(x.note)+'</p><button class="danger" data-del="fuel" data-id="'+x.id+'">Excluir</button></div>').join("")||'<p class="muted">Nenhum abastecimento registrado.</p>'}
+function renderMaint(){let types={motor:"Óleo do motor",cambio:"Óleo do câmbio",diferencial:"Óleo do diferencial",outra:"Outra"};let status=[];["iveco","daf"].forEach(tr=>["motor","cambio","diferencial"].forEach(tp=>{let a=D.maint.filter(x=>x.truck===tr&&x.type===tp).sort((x,y)=>y.km-x.km);let last=a[0],interval=last?.interval||defaults(tr,tp),km=currentKm(tr);if(last&&interval){let left=last.km+interval-km;status.push('<div class="card"><b>'+T(tr)+' — '+types[tp]+'</b><p>Última troca: '+last.km.toLocaleString("pt-BR")+' km • Atual: '+km.toLocaleString("pt-BR")+' km</p><b class="'+(left<=0?"late":left<3000?"warn":"ok")+'">'+(left<=0?"VENCIDA":("Faltam "+left.toLocaleString("pt-BR")+" km"))+'</b></div>')}else status.push('<div class="card"><b>'+T(tr)+' — '+types[tp]+'</b><p class="muted">Cadastre a última troca para ativar o alerta.</p></div>')}));$("#maintStatus").innerHTML=status.join("");$("#maintList").innerHTML=[...D.maint].sort((x,y)=>y.date.localeCompare(x.date)).map(x=>'<div class="card"><b>'+T(x.truck)+' — '+types[x.type]+'</b><p>'+x.date+' • '+x.km.toLocaleString("pt-BR")+' km • '+M(x.cost)+' • Intervalo '+x.interval.toLocaleString("pt-BR")+' km</p><p>'+esc(x.note)+'</p><button class="danger" data-del="maint" data-id="'+x.id+'">Excluir</button></div>').join("")||'<p class="muted">Nenhuma manutenção registrada.</p>'}
+function renderTires(){let a=D.tires;$("#eventTire").innerHTML=a.map(x=>'<option value="'+x.id+'">'+T(x.truck)+' — '+esc(x.position)+'</option>').join("");$("#tireList").innerHTML=a.map(x=>'<div class="card"><b>'+T(x.truck)+' — '+esc(x.position)+'</b><p>'+esc(x.brand)+' • Instalado em '+x.date+' • KM '+x.km.toLocaleString("pt-BR")+' • Vida prevista '+x.life.toLocaleString("pt-BR")+' km • Recapagens: '+x.recaps+'</p><button class="danger" data-del="tires" data-id="'+x.id+'">Excluir</button></div>').join("")||'<p class="muted">Nenhum pneu cadastrado.</p>';$("#eventList").innerHTML=[...D.events].sort((x,y)=>y.date.localeCompare(x.date)).map(x=>{let t=a.find(t=>t.id===x.tireId);return '<div class="card"><b>'+esc(x.type)+' — '+esc(t?.position||"Pneu")+'</b><p>'+x.date+' • KM '+x.km.toLocaleString("pt-BR")+' • '+M(x.cost)+' • '+esc(x.note)+'</p><button class="danger" data-del="events" data-id="'+x.id+'">Excluir</button></div>'}).join("")||'<p class="muted">Nenhum evento registrado.</p>'}
+function renderDocs(){let now=today();$("#docList").innerHTML=[...D.docs].sort((x,y)=>x.due.localeCompare(y.due)).map(x=>{let days=Math.ceil((new Date(x.due+"T12:00:00")-new Date(now+"T12:00:00"))/86400000);return '<div class="card"><div class="row"><b>'+esc(x.type)+' — '+T(x.truck)+'</b><b class="'+(x.paid?"ok":days<0?"late":days<=30?"warn":"")+'">'+(x.paid?"Pago":days<0?"Vencido":days<=30?"Vence em "+days+" dias":"Em dia")+'</b></div><p>Vencimento: '+x.due+' • '+M(x.value)+' • '+esc(x.note)+'</p><button data-paid="'+x.id+'">'+(x.paid?"Marcar pendente":"Marcar pago")+'</button> <button class="danger" data-del="docs" data-id="'+x.id+'">Excluir</button></div>'}).join("")||'<p class="muted">Nenhum vencimento cadastrado.</p>';$$("[data-paid]").forEach(b=>b.onclick=()=>{let x=D.docs.find(x=>x.id===b.dataset.paid);x.paid=!x.paid;save("docs",D.docs);render()})}function getIvecoCommissionIncome(){
+ let trips=[];try{trips=JSON.parse(localStorage.getItem("af_trips_v1")||"[]")}catch{}
+ if(!Array.isArray(trips))trips=[];
+ return trips.map((x,i)=>{
+  const truck=x.truckId||x.truck||"iveco";
+  if(!["iveco","iveco-stralis","stralis"].includes(String(truck).toLowerCase()))return null;
+  const date=String(x.date||x.data||"");
+  const gross=N(x.freight??x.frete??x.valorFrete??x.valor_frete??x.value??0);
+  const rateRaw=x.commissionRate??x.commission_rate??x.comissaoPercentual??x.percentualComissao;
+  const rate=rateRaw===undefined||rateRaw===null||rateRaw===""?13:N(rateRaw);
+  const commission=N(x.commission??x.comissao??(gross*rate/100));
+  if(!date||commission<=0)return null;
+  return{id:"trip-"+(x.id??i),date,description:"Comissão do Iveco — "+(x.origin&&x.destination?x.origin+" → "+x.destination:(x.route||x.rota||"Frete registrado")),amount:commission,rate,gross};
+ }).filter(Boolean).sort((a,b)=>b.date.localeCompare(a.date));
+}
+function renderPersonal(){
+ let m=$("#personalMonth").value;
+ const income=getIvecoCommissionIncome().filter(x=>!m||x.date.startsWith(m));
+ const expenses=D.personal.filter(x=>!m||x.date.startsWith(m)).sort((x,y)=>y.date.localeCompare(x.date));
+ const incomeTotal=income.reduce((s,x)=>s+N(x.amount),0);
+ const expenseTotal=expenses.reduce((s,x)=>s+N(x.amount),0);
+ const sum=k=>expenses.filter(x=>x.payment===k).reduce((s,x)=>s+N(x.amount),0);
+ $("#personalSummary").innerHTML='<div class="kpis">'+[["Receitas — comissão Iveco",M(incomeTotal)],["Despesas pessoais",M(expenseTotal)],["Saldo disponível",M(incomeTotal-expenseTotal)],["Cartão",M(sum("cartao"))],["Pix",M(sum("pix"))],["Dinheiro",M(sum("dinheiro"))]].map(x=>'<div class="kpi"><small>'+x[0]+'</small><strong>'+x[1]+'</strong></div>').join("")+'</div><p class="muted">Saldo = comissões do Iveco no mês selecionado menos despesas pessoais cadastradas.</p>';
+ $("#personalIncomeList").innerHTML=income.map(x=>'<div class="card"><div class="row"><b>'+esc(x.description)+'</b><b class="ok">+'+M(x.amount)+'</b></div><p>'+esc(x.date)+' • Comissão considerada: '+N(x.rate).toLocaleString("pt-BR")+'% • Frete: '+M(x.gross)+'</p></div>').join("")||'<p class="muted">Nenhuma comissão do Iveco encontrada neste período. Confira os fretes registrados no controle principal.</p>';
+ $("#personalList").innerHTML=expenses.map(x=>'<div class="card"><div class="row"><b>'+esc(x.description)+' — '+M(x.amount)+'</b><b>'+({cartao:"Cartão",pix:"Pix",dinheiro:"Dinheiro"}[x.payment]||x.payment)+'</b></div><p>'+x.date+' • '+esc(x.category)+' • '+esc(x.detail||"")+'</p><button class="danger" data-del="personal" data-id="'+x.id+'">Excluir</button></div>').join("")||'<p class="muted">Nenhuma despesa pessoal neste mês.</p>';
+}
+function renderHome(){
+ let fuel=D.fuel.reduce((s,x)=>s+x.liters*x.price,0);
+ $("#homeSummary").innerHTML='<div class="kpis"><div class="kpi"><small>Abastecimentos registrados</small><strong>'+D.fuel.length+'</strong></div><div class="kpi"><small>Gasto com abastecimentos</small><strong>'+M(fuel)+'</strong></div><div class="kpi"><small>Manutenções</small><strong>'+D.maint.length+'</strong></div><div class="kpi"><small>Pneus cadastrados</small><strong>'+D.tires.length+'</strong></div></div>';
+ let a=[];["iveco","daf"].forEach(tr=>["motor","cambio","diferencial"].forEach(tp=>{let last=D.maint.filter(x=>x.truck===tr&&x.type===tp).sort((x,y)=>y.km-x.km)[0];if(last){let left=last.km+last.interval-currentKm(tr);if(left<=3000)a.push(T(tr)+" — "+tp+": "+(left<=0?"manutenção vencida":"faltam "+left+" km"))}}));
+ D.docs.filter(x=>!x.paid).forEach(x=>{let days=Math.ceil((new Date(x.due+"T12:00:00")-new Date(today()+"T12:00:00"))/86400000);if(days<=30)a.push(x.type+" — "+(days<0?"vencido": "vence em "+days+" dias"))});
+ $("#alerts").innerHTML=a.map(x=>'<div class="notice">'+esc(x)+'</div>').join("")||'<p class="ok">Nenhum alerta próximo com os dados cadastrados.</p>';
+}
+function renderAnnual(){
+ let year=String($("#annualYear").value||new Date().getFullYear());
+ let trips=[];try{trips=JSON.parse(localStorage.getItem("af_trips_v1")||"[]")}catch{}
+ const rows=["iveco","daf"].map(tr=>{
+  let a=trips.filter(x=>(x.truckId||"iveco")===tr&&String(x.date||"").startsWith(year));
+  let revenue=a.reduce((s,x)=>s+N(x.freight??x.frete??x.valorFrete),0);
+  let commission=a.reduce((s,x)=>s+N(x.commission??x.comissao??N(x.freight??x.frete??x.valorFrete)*N(x.commissionRate??13)/100),0);
+  let km=a.reduce((s,x)=>s+Math.max(0,N(x.odoEnd??x.kmFinal)-N(x.odoStart??x.kmInicial)),0);
+  let maint=D.maint.filter(x=>x.truck===tr&&x.date.startsWith(year)).reduce((s,x)=>s+x.cost,0);
+  let fuel=D.fuel.filter(x=>x.truck===tr&&x.date.startsWith(year)).reduce((s,x)=>s+x.liters*x.price,0);
+  return'<div class="card"><h3>'+T(tr)+'</h3><p>Fretes registrados: '+a.length+'</p><p>Faturamento: <b>'+M(revenue)+'</b></p><p>Comissões: '+M(commission)+'</p><p>KM dos fretes: '+km.toLocaleString("pt-BR")+'</p><p>Abastecimentos: '+M(fuel)+'</p><p>Manutenções: '+M(maint)+'</p></div>';
+ });
+ $("#annualResult").innerHTML=rows.join("");
+}
+function render(){
+ renderHome();renderFuel();renderMaint();renderTires();renderDocs();renderPersonal();renderAnnual();renderReceipts();
+}
+$("#annualYear").onchange=renderAnnual;
+render();
+</script></body></html>
