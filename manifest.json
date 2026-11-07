@@ -1,15 +1,14 @@
 {
-  "name": "Assistente Financeiro - Fretes Autônomo",
-  "short_name": "Fretes",
-  "description": "Controle financeiro de viagens, fretes, combustível, pedágios e lucro.",
+  "name": "RHD Transportes — Controle Financeiro",
+  "short_name": "RHD Transportes",
   "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#1f2937",
-  "orientation": "portrait",
+  "background_color": "#f1f4f7",
+  "theme_color": "#203b56",
   "icons": [
     {
-      "src": "./icon.svg",
+      "src": "icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
