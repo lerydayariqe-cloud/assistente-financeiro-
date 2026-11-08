@@ -287,8 +287,12 @@ window.openVoiceAssistant = function(){
       const rec = new SR();
       rec.lang = "pt-BR";
       rec.onresult = e => {
-        document.getElementById("voiceText").value = e.results[0][0].transcript;
-      };
+  document.getElementById("voiceText").value = e.results[0][0].transcript;
+  rec.stop();
+};
+rec.onend = () => {
+  document.getElementById("voiceListen").textContent = "🎤 Falar novamente";
+};
       rec.onerror = () => alert("Não consegui reconhecer. Tente novamente ou use o microfone do teclado.");
       rec.start();
     };
