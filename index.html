@@ -293,7 +293,7 @@ window.openVoiceAssistant = function(){
       rec.start();
     };
 
-    document.getElementById("voiceProcess").onclick = interpretarComando;
+document.getElementById("voiceProcess").addEventListener("click", () => { try { interpretarComando(); } catch (erro) { alert("Erro ao preencher: " + erro.message); } });
   }
 };
 
