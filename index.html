@@ -69,7 +69,12 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:15px}
 <button class="active" data-tab="home">Painel</button><button data-tab="trips">Viagens</button><button data-tab="new">Novo frete</button><button data-tab="fixed">Despesas fixas</button><button data-tab="report">Relatórios</button><button data-tab="backup">Backup</button>
 <a class="btn" href="frota.html" style="text-decoration:none">Frota / Despesas Pessoais — Leandro</a>
 </nav>
-
+<div id="voiceAssistant" style="margin:15px 0;padding:18px;text-align:center;background:#172b40;border-radius:14px">
+  <button type="button" onclick="openVoiceAssistant()" style="font-size:18px;padding:15px 25px;border:0;border-radius:30px;background:#00aaff;color:white;font-weight:bold">
+    🎙️ Assistente de voz
+  </button>
+  <p style="margin:8px 0 0;color:white">Fale o que deseja registrar</p>
+</div>
 <section id="home" class="tab">
 
 <div class="panel"><h2>Resumo do mês</h2>
